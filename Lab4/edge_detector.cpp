@@ -22,38 +22,33 @@ void Magnitude(
 
 int main( int argc, char** argv )
 {
+  char* imageName = argv[1];
 
- // LOADING THE IMAGE
- char* imageName = argv[1];
+  Mat image;
+  image = imread( imageName, 1 );
 
- Mat image;
- image = imread( imageName, 1 );
+  if( argc != 2 || !image.data )
+  {
+    printf( " No image data \n " );
+    return -1;
+  }
 
- if( argc != 2 || !image.data )
- {
-   printf( " No image data \n " );
-   return -1;
- }
+  Mat gray_image;
+  cvtColor( image, gray_image, CV_BGR2GRAY );
 
- // CONVERT COLOUR, BLUR AND SAVE
- Mat gray_image;
- cvtColor( image, gray_image, CV_BGR2GRAY );
+  Mat edgesX, edgesY, magnitude;
 
- Mat edgesX, edgesY, magnitude;
+  uchar kernelX[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}};
+  Convolute(gray_image, kernelX, edgesX);
+  Mat normalizedX;
+  imwrite( "edgesX.jpg", edgesX );
 
- uchar kernelX[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}};
- Convolute(gray_image, kernelX, edgesX);
- Mat normalizedX;
-//  edgesX.convertTo(normalizedX, CV_32F, 1.0 / 255);
- imwrite( "edgesX.jpg", edgesX );
-
- uchar kernelY[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
- Convolute(gray_image, kernelY, edgesY);
- imwrite( "edgesY.jpg", edgesY );
+  uchar kernelY[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
+  Convolute(gray_image, kernelY, edgesY);
+  imwrite( "edgesY.jpg", edgesY );
 
 	Magnitude(edgesX, edgesY, magnitude);
 	imwrite( "magnitude.jpg", magnitude );
-
 
  return 0;
 }
@@ -94,6 +89,9 @@ void Convolute(cv::Mat &input, uchar kernel[3][3], cv::Mat &output)
 		kernelRadiusX, kernelRadiusX, kernelRadiusY, kernelRadiusY,
 		cv::BORDER_REPLICATE );
 
+  double min = 10000, max = 10000;
+  double matrix[600][600];
+
 	// now we can do the convoltion
 	for ( int i = 0; i < input.rows; i++ )
 	{
@@ -118,8 +116,35 @@ void Convolute(cv::Mat &input, uchar kernel[3][3], cv::Mat &output)
 					sum += imageval * kernalval;
 				}
 			}
-			// set the output value as the sum of the convolution
-			output.at<uchar>(i, j) = (uchar) sum;
+      matrix[i][j] = sum;
+      if(sum > max)
+      {
+        max = sum;
+      }
+      if(sum < min)
+      {
+        min = sum;
+      }
 		}
 	}
+  // cout << "max: " << max << endl;
+  // cout << "min: " << min << endl;
+
+  double oldrange = max - min;
+
+  double newmin=0;
+  double newmax=255;
+  double newrange = newmax - newmin;
+
+  for( int i = 0; i < output.rows; i++ )
+	{
+		for( int j = 0; j < output.cols; j++ )
+    {
+      double scale = (matrix[i][j] - min) / oldrange;
+      // cout << (newrange * scale) + newmin << " ";
+      output.at<uchar>(i, j) = (newrange * scale) + newmin;
+    }
+  }
 }
+
+ 
