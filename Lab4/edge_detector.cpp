@@ -3,13 +3,22 @@
 #include <opencv/cv.h>        //you may need to
 #include <opencv/highgui.h>   //adjust import locations
 #include <opencv/cxcore.h>    //depending on your machine setup
+#include <math.h>
 
 using namespace cv;
+using namespace std;
 
 void Convolute(
 	cv::Mat &input,
 	uchar kernel[3][3],
-	cv::Mat &output);
+	cv::Mat &output
+);
+
+void Magnitude(
+	cv::Mat &edgesX,
+	cv::Mat &edgesY,
+	cv::Mat &output
+);
 
 int main( int argc, char** argv )
 {
@@ -27,20 +36,48 @@ int main( int argc, char** argv )
  }
 
  // CONVERT COLOUR, BLUR AND SAVE
- Mat input;
- cvtColor( image, input, CV_BGR2GRAY );
+ Mat gray_image;
+ cvtColor( image, gray_image, CV_BGR2GRAY );
 
- Mat edgesX, edgesY;
+ Mat edgesX, edgesY, magnitude;
 
  uchar kernelX[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}};
- Convolute(input, kernelX, edgesX);
+ Convolute(gray_image, kernelX, edgesX);
+ Mat normalizedX;
+//  edgesX.convertTo(normalizedX, CV_32F, 1.0 / 255);
  imwrite( "edgesX.jpg", edgesX );
 
  uchar kernelY[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
- Convolute(input, kernelY, edgesY);
+ Convolute(gray_image, kernelY, edgesY);
  imwrite( "edgesY.jpg", edgesY );
 
+	Magnitude(edgesX, edgesY, magnitude);
+	imwrite( "magnitude.jpg", magnitude );
+
+
  return 0;
+}
+
+void Magnitude(cv::Mat &edgesX,cv::Mat &edgesY,cv::Mat &output)
+{
+	output.create(edgesX.size(), edgesX.type());
+	int count = 0;
+	for(int i = 0; i < edgesX.rows; i++)
+	{
+		for(int j = 0; j < edgesY.cols; j++)
+		{
+			double x_2 = edgesX.at<uchar>(i, j) * edgesX.at<uchar>(i, j);
+			double y_2 = edgesY.at<uchar>(i, j) * edgesY.at<uchar>(i, j);
+			double magnitude = sqrt(x_2 + y_2);
+
+			if(magnitude > 255 || magnitude < 0)
+			{
+				count++;
+			}
+			output.at<uchar>(i, j) = (uchar)magnitude;
+		}
+	}
+	// cout << count;
 }
 
 void Convolute(cv::Mat &input, uchar kernel[3][3], cv::Mat &output)
