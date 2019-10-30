@@ -11,7 +11,8 @@ using namespace std;
 void Convolute(
 	cv::Mat &input,
 	uchar kernel[3][3],
-	cv::Mat &output
+	cv::Mat &output,
+  double derivatives[600][600]
 );
 
 void Magnitude(
@@ -37,18 +38,24 @@ int main( int argc, char** argv )
   cvtColor( image, gray_image, CV_BGR2GRAY );
 
   Mat edgesX, edgesY, magnitude;
+  double derivativesX[600][600];
+  double derivativesY[600][600];
 
-  uchar kernelX[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}};
-  Convolute(gray_image, kernelX, edgesX);
-  Mat normalizedX;
+  uchar kernelX[3][3] = {{-1, 0, 1},
+                         {-2, 0, 2},
+                         {-1, 0, 1}};
+  uchar kernelY[3][3] = {{-1, -2, -1},
+                         { 0,  0,  0},
+                         { 1,  2,  1}};
+
+  Convolute(gray_image, kernelX, edgesX, derivativesX);
   imwrite( "edgesX.jpg", edgesX );
 
-  uchar kernelY[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
-  Convolute(gray_image, kernelY, edgesY);
+  Convolute(gray_image, kernelY, edgesY, derivativesY);
   imwrite( "edgesY.jpg", edgesY );
 
-	Magnitude(edgesX, edgesY, magnitude);
-	imwrite( "magnitude.jpg", magnitude );
+	// Magnitude(edgesX, edgesY, magnitude);
+	// imwrite( "magnitude.jpg", magnitude );
 
  return 0;
 }
@@ -57,6 +64,9 @@ void Magnitude(cv::Mat &edgesX,cv::Mat &edgesY,cv::Mat &output)
 {
 	output.create(edgesX.size(), edgesX.type());
 	int count = 0;
+  double min = 10000, max = -10000;
+  double matrix[600][600];
+  
 	for(int i = 0; i < edgesX.rows; i++)
 	{
 		for(int j = 0; j < edgesY.cols; j++)
@@ -64,18 +74,38 @@ void Magnitude(cv::Mat &edgesX,cv::Mat &edgesY,cv::Mat &output)
 			double x_2 = edgesX.at<uchar>(i, j) * edgesX.at<uchar>(i, j);
 			double y_2 = edgesY.at<uchar>(i, j) * edgesY.at<uchar>(i, j);
 			double magnitude = sqrt(x_2 + y_2);
+      
+      matrix[i][j] = magnitude;
 
-			if(magnitude > 255 || magnitude < 0)
-			{
-				count++;
-			}
-			output.at<uchar>(i, j) = (uchar)magnitude;
+			if(magnitude > max)
+      {
+        max = magnitude;
+      }
+      if(magnitude < min)
+      {
+        min = magnitude;
+      } 
 		}
 	}
-	// cout << count;
+  cout << "max: " << max << endl;
+  cout << "min: " << min << endl;
+  double oldrange = max - min;
+  double newmin=0;
+  double newmax=255;
+  double newrange = newmax - newmin;
+
+  for( int i = 0; i < output.rows; i++ )
+	{
+		for( int j = 0; j < output.cols; j++ )
+    {
+      double scale = (matrix[i][j] - min) / oldrange;
+      // cout << (newrange * scale) + newmin << " ";
+      output.at<uchar>(i, j) = (newrange * scale) + newmin;
+    }
+  }
 }
 
-void Convolute(cv::Mat &input, uchar kernel[3][3], cv::Mat &output)
+void Convolute(cv::Mat &input, uchar kernel[3][3], cv::Mat &output, double derivatives[600][600])
 {
 	// intialise the output using the input
 	output.create(input.size(), input.type());
@@ -90,7 +120,6 @@ void Convolute(cv::Mat &input, uchar kernel[3][3], cv::Mat &output)
 		cv::BORDER_REPLICATE );
 
   double min = 10000, max = 10000;
-  double matrix[600][600];
 
 	// now we can do the convoltion
 	for ( int i = 0; i < input.rows; i++ )
@@ -116,7 +145,7 @@ void Convolute(cv::Mat &input, uchar kernel[3][3], cv::Mat &output)
 					sum += imageval * kernalval;
 				}
 			}
-      matrix[i][j] = sum;
+      derivatives[i][j] = sum;
       if(sum > max)
       {
         max = sum;
@@ -129,9 +158,7 @@ void Convolute(cv::Mat &input, uchar kernel[3][3], cv::Mat &output)
 	}
   // cout << "max: " << max << endl;
   // cout << "min: " << min << endl;
-
   double oldrange = max - min;
-
   double newmin=0;
   double newmax=255;
   double newrange = newmax - newmin;
@@ -140,7 +167,7 @@ void Convolute(cv::Mat &input, uchar kernel[3][3], cv::Mat &output)
 	{
 		for( int j = 0; j < output.cols; j++ )
     {
-      double scale = (matrix[i][j] - min) / oldrange;
+      double scale = (derivatives[i][j] - min) / oldrange;
       // cout << (newrange * scale) + newmin << " ";
       output.at<uchar>(i, j) = (newrange * scale) + newmin;
     }
