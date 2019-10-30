@@ -21,6 +21,12 @@ void Magnitude(
 	cv::Mat &output
 );
 
+void GradientDirection(
+	double derivativesX[600][600],
+	double derivativesY[600][600],
+	cv::Mat &output
+);
+
 int main( int argc, char** argv )
 {
   char* imageName = argv[1];
@@ -37,7 +43,7 @@ int main( int argc, char** argv )
   Mat gray_image;
   cvtColor( image, gray_image, CV_BGR2GRAY );
 
-  Mat edgesX, edgesY, magnitude;
+  Mat edgesX, edgesY, magnitude, direction;
   double derivativesX[600][600];
   double derivativesY[600][600];
 
@@ -58,49 +64,11 @@ int main( int argc, char** argv )
 	Magnitude(derivativesX, derivativesY, magnitude);
 	imwrite( "magnitude.jpg", magnitude );
 
+  direction.create(edgesX.size(), edgesX.type());
+	GradientDirection(derivativesX, derivativesY, direction);
+	imwrite( "direction.jpg", direction );
+
  return 0;
-}
-
-void Magnitude(double derivativesX[600][600], double derivativesY[600][600], cv::Mat &output)
-{
-  double min = 10000, max = -10000;
-  double magnitudes[500][500];
-
-	for(int i = 0; i < output.rows; i++)
-	{
-		for(int j = 0; j < output.cols; j++)
-		{
-			double x_2 = derivativesX[i][j] * derivativesX[i][j];
-			double y_2 = derivativesY[i][j] * derivativesY[i][j];
-			double magnitude = sqrt(x_2 + y_2);
-      magnitudes[i][j] = magnitude;
-
-			if(magnitude > max)
-      {
-        max = magnitude;
-      }
-      if(magnitude < min)
-      {
-        min = magnitude;
-      } 
-		}
-	}
-  cout << "max: " << max << endl;
-  cout << "min: " << min << endl;
-  double oldrange = max - min;
-  double newmin=0;
-  double newmax=255;
-  double newrange = newmax - newmin;
-
-  for( int i = 0; i < output.rows; i++ )
-	{
-		for( int j = 0; j < output.cols; j++ )
-    {
-      double scale = (magnitudes[i][j] - min) / oldrange;
-      // cout << (newrange * scale) + newmin << " ";
-      output.at<uchar>(i, j) = (newrange * scale) + newmin;
-    }
-  }
 }
 
 void Convolute(cv::Mat &input, double kernel[3][3], cv::Mat &output, double derivatives[600][600])
@@ -154,8 +122,6 @@ void Convolute(cv::Mat &input, double kernel[3][3], cv::Mat &output, double deri
       }
 		}
 	}
-  // cout << "max: " << max << endl;
-  // cout << "min: " << min << endl;
   double oldrange = max - min;
   double newmin=0;
   double newmax=255;
@@ -171,5 +137,80 @@ void Convolute(cv::Mat &input, double kernel[3][3], cv::Mat &output, double deri
     }
   }
 }
-
  
+void Magnitude(double derivativesX[600][600], double derivativesY[600][600], cv::Mat &output)
+{
+  double min = 10000, max = -10000;
+  double magnitudes[500][500];
+
+	for(int i = 0; i < output.rows; i++)
+	{
+		for(int j = 0; j < output.cols; j++)
+		{
+			double x_2 = derivativesX[i][j] * derivativesX[i][j];
+			double y_2 = derivativesY[i][j] * derivativesY[i][j];
+			double magnitude = sqrt(x_2 + y_2);
+      magnitudes[i][j] = magnitude;
+
+			if(magnitude > max)
+      {
+        max = magnitude;
+      }
+      if(magnitude < min)
+      {
+        min = magnitude;
+      } 
+		}
+	}
+  double oldrange = max - min;
+  double newmin=0;
+  double newmax=255;
+  double newrange = newmax - newmin;
+
+  for( int i = 0; i < output.rows; i++ )
+	{
+		for( int j = 0; j < output.cols; j++ )
+    {
+      double scale = (magnitudes[i][j] - min) / oldrange;
+      output.at<uchar>(i, j) = (newrange * scale) + newmin;
+    }
+  }
+}
+
+void GradientDirection(double derivativesX[600][600], double derivativesY[600][600], Mat &output)
+{
+  double min = 999999, max = -999999, atan;
+  double directions[500][500];
+  for( int i = 0; i < output.rows; i++ )
+	{
+		for( int j = 0; j < output.cols; j++ )
+    {
+      
+      atan = atan2(derivativesY[i][j] , derivativesX[i][j]);
+      directions[i][j] = atan;
+      if(atan > max)
+      {
+        max = atan;
+      }
+      if(atan < min)
+      {
+        min = atan;
+      } 
+		}
+	}
+  // cout << "max: " << max << endl;
+  // cout << "min: " << min << endl;
+  double oldrange = max - min;
+  double newmin=0;
+  double newmax=255;
+  double newrange = newmax - newmin;
+
+  for( int i = 0; i < output.rows; i++ )
+	{
+		for( int j = 0; j < output.cols; j++ )
+    {
+      double scale = (directions[i][j] - min) / oldrange;
+      output.at<uchar>(i, j) = (newrange * scale) + newmin;
+    }
+  }
+}
