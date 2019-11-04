@@ -182,23 +182,17 @@ void Magnitude(double derivativesX[600][600], double derivativesY[600][600], cv:
 
 void GradientDirection(double derivativesX[600][600], double derivativesY[600][600], Mat &output)
 {
-  double min = 999999, max = -999999, atan;
+  double min = 999999, max = -999999, direction;
   double directions[550][550];
   for( int i = 0; i < output.rows; i++ )
 	{
 		for( int j = 0; j < output.cols; j++ )
     {
-      
-      atan = atan2(derivativesY[i][j] , derivativesX[i][j]);
-      directions[i][j] = atan;
-      if(atan > max)
-      {
-        max = atan;
-      }
-      if(atan < min)
-      {
-        min = atan;
-      } 
+      direction = atan2(derivativesY[i][j] , derivativesX[i][j]);
+      direction = direction * 180.0 / 3.14159265;
+      directions[i][j] = direction;
+      if(direction > max) max = direction;
+      if(direction < min) min = direction;
 		}
 	}
   double oldrange = max - min;
@@ -222,12 +216,9 @@ void SegmentByThreshold(Mat &input, double threshold, Mat &output) {
   {
 		for(int j = 0; j < input.cols; j++)
     {
-      if (input.at<uchar>(i, j) >= threshold)
-      {
+      if (input.at<uchar>(i, j) >= threshold) {
         output.at<uchar>(i, j) = 255;
-      }
-      else
-      {
+      } else {
         output.at<uchar>(i, j) = 0;
       }
 		}
