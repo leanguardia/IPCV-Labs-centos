@@ -70,19 +70,18 @@ int main( int argc, char** argv )
 	Magnitude(derivativesX, derivativesY, magnitude);
 	imwrite( "magnitude.jpg", magnitude );
 
-	SegmentByThreshold(magnitude, 90.0, segment);
+	SegmentByThreshold(magnitude, 80.0, segment);
 	imwrite( "segment.jpg", segment );
 
-  // direction.create(edgesX.size(), edgesX.type());
-	// GradientDirection(derivativesX, derivativesY, direction);
-	// imwrite( "direction.jpg", direction );
+  direction.create(edgesX.size(), edgesX.type());
+	GradientDirection(derivativesX, derivativesY, direction);
+	imwrite( "direction.jpg", direction );
 
  return 0;
 }
 
 void Convolute(cv::Mat &input, double kernel[3][3], cv::Mat &output, double derivatives[600][600])
 {
-	// intialise the output using the input
 	output.create(input.size(), input.type());
 	int kernelSize = 3;
 
@@ -96,7 +95,6 @@ void Convolute(cv::Mat &input, double kernel[3][3], cv::Mat &output, double deri
 
   double min = 10000, max = 10000;
 
-	// now we can do the convoltion
 	for ( int i = 0; i < input.rows; i++ )
 	{
 		for( int j = 0; j < input.cols; j++ )
@@ -106,7 +104,6 @@ void Convolute(cv::Mat &input, double kernel[3][3], cv::Mat &output, double deri
 			{
 				for( int n = -kernelRadiusY; n <= kernelRadiusY; n++ )
 				{
-					// find the correct indices we are using
 					int imagex = i + m + kernelRadiusX;
 					int imagey = j + n + kernelRadiusY;
 					int kernelx = m + kernelRadiusX;
@@ -115,8 +112,6 @@ void Convolute(cv::Mat &input, double kernel[3][3], cv::Mat &output, double deri
 					// get the values from the padded image and the kernel
 					int imageval = ( int ) paddedInput.at<uchar>( imagex, imagey );
 					double kernalval = kernel[kernelx][kernely];
-
-					// do the multiplication
 					sum += imageval * kernalval;
 				}
 			}
@@ -141,7 +136,6 @@ void Convolute(cv::Mat &input, double kernel[3][3], cv::Mat &output, double deri
 		for( int j = 0; j < output.cols; j++ )
     {
       double scale = (derivatives[i][j] - min) / oldrange;
-      // cout << (newrange * scale) + newmin << " ";
       output.at<uchar>(i, j) = (newrange * scale) + newmin;
     }
   }
@@ -207,8 +201,6 @@ void GradientDirection(double derivativesX[600][600], double derivativesY[600][6
       } 
 		}
 	}
-  // cout << "max: " << max << endl;
-  // cout << "min: " << min << endl;
   double oldrange = max - min;
   double newmin=0;
   double newmax=255;
