@@ -27,6 +27,12 @@ void GradientDirection(
 	cv::Mat &output
 );
 
+void SegmentByThreshold(
+	cv::Mat &input,
+  double threshold,
+	cv::Mat &output
+);
+
 int main( int argc, char** argv )
 {
   char* imageName = argv[1];
@@ -43,7 +49,7 @@ int main( int argc, char** argv )
   Mat gray_image;
   cvtColor( image, gray_image, CV_BGR2GRAY );
 
-  Mat edgesX, edgesY, magnitude, direction;
+  Mat edgesX, edgesY, magnitude, direction, segment;
   double derivativesX[600][600];
   double derivativesY[600][600];
 
@@ -64,9 +70,12 @@ int main( int argc, char** argv )
 	Magnitude(derivativesX, derivativesY, magnitude);
 	imwrite( "magnitude.jpg", magnitude );
 
-  direction.create(edgesX.size(), edgesX.type());
-	GradientDirection(derivativesX, derivativesY, direction);
-	imwrite( "direction.jpg", direction );
+	SegmentByThreshold(magnitude, 90.0, segment);
+	imwrite( "segment.jpg", segment );
+
+  // direction.create(edgesX.size(), edgesX.type());
+	// GradientDirection(derivativesX, derivativesY, direction);
+	// imwrite( "direction.jpg", direction );
 
  return 0;
 }
@@ -141,7 +150,7 @@ void Convolute(cv::Mat &input, double kernel[3][3], cv::Mat &output, double deri
 void Magnitude(double derivativesX[600][600], double derivativesY[600][600], cv::Mat &output)
 {
   double min = 10000, max = -10000;
-  double magnitudes[500][500];
+  double magnitudes[550][550];
 
 	for(int i = 0; i < output.rows; i++)
 	{
@@ -180,7 +189,7 @@ void Magnitude(double derivativesX[600][600], double derivativesY[600][600], cv:
 void GradientDirection(double derivativesX[600][600], double derivativesY[600][600], Mat &output)
 {
   double min = 999999, max = -999999, atan;
-  double directions[500][500];
+  double directions[550][550];
   for( int i = 0; i < output.rows; i++ )
 	{
 		for( int j = 0; j < output.cols; j++ )
@@ -213,4 +222,22 @@ void GradientDirection(double derivativesX[600][600], double derivativesY[600][6
       output.at<uchar>(i, j) = (newrange * scale) + newmin;
     }
   }
+}
+
+void SegmentByThreshold(Mat &input, double threshold, Mat &output) {
+  output.create(input.size(), input.type());
+	for (int i = 0; i < input.rows; i++)
+  {
+		for(int j = 0; j < input.cols; j++)
+    {
+      if (input.at<uchar>(i, j) >= threshold)
+      {
+        output.at<uchar>(i, j) = 255;
+      }
+      else
+      {
+        output.at<uchar>(i, j) = 0;
+      }
+		}
+	}
 }
