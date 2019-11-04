@@ -33,6 +33,14 @@ void SegmentByThreshold(
 	cv::Mat &output
 );
 
+void HoughSpace(
+  Mat magnitude,
+  Mat direction,
+  int minRad,
+  int maxRad,
+  float hSpace[600][600][150]
+);
+
 int main( int argc, char** argv )
 {
   char* imageName = argv[1];
@@ -52,6 +60,7 @@ int main( int argc, char** argv )
   Mat edgesX, edgesY, magnitude, direction, segment;
   double derivativesX[600][600];
   double derivativesY[600][600];
+  float hSpace[600][600][150];
 
   double kernelX[3][3] = {{-1, 0, 1},
                          {-2, 0, 2},
@@ -76,6 +85,9 @@ int main( int argc, char** argv )
   direction.create(edgesX.size(), edgesX.type());
 	GradientDirection(derivativesX, derivativesY, direction);
 	imwrite( "direction.jpg", direction );
+
+  int minRad = 10, maxRad = 270;
+  HoughSpace(magnitude, direction, minRad, maxRad, hSpace);
 
  return 0;
 }
@@ -223,4 +235,9 @@ void SegmentByThreshold(Mat &input, double threshold, Mat &output) {
       }
 		}
 	}
+}
+
+void HoughSpace(Mat magnitude, Mat direction, int minRadius, int maxRaiud, float hSpace[600][600][150])
+{
+  //
 }
