@@ -1,0 +1,28 @@
+//dart4.jpg - done
+//rectangle (frame, Point(350,120), Point(480,250), Scalar(0,0,255), 2 );
+
+//dart5.jpg - done 
+//rectangle (frame, Point(60,130), Point(120,200), Scalar(0,0,255), 2 ); // 1st man
+//rectangle (frame, Point(250,170), Point(305,220), Scalar(0,0,255), 2 ); // 2nd man
+//rectangle (frame, Point(380,190), Point(435,240), Scalar(0,0,255), 2 ); // 3rd man
+//rectangle (frame, Point(520,175), Point(570,230), Scalar(0,0,255), 2 ); // 4th man
+//rectangle (frame, Point(650,185), Point(700,240), Scalar(0,0,255), 2 ); // 5th man
+//rectangle (frame, Point(60,250), Point(115,310), Scalar(0,0,255), 2 ); // 1st woman
+//rectangle (frame, Point(200,210), Point(250,280), Scalar(0,0,255), 2 ); // 2nd woman
+//rectangle (frame, Point(300,240), Point(345,300), Scalar(0,0,255), 2 ); // 3rd woman
+//rectangle (frame, Point(425,240), Point(485,300), Scalar(0,0,255), 2 ); // 4th woman
+//rectangle (frame, Point(560,245), Point(620,310), Scalar(0,0,255), 2 ); // 5th woman
+//rectangle (frame, Point(680,245), Point(730,310), Scalar(0,0,255), 2 ); // 6th woman
+
+
+//dart13.jpg - done
+//rectangle (frame, Point(410,120), Point(540,250), Scalar(0,0,255), 2 );
+
+//dart14.jpg - done
+//rectangle (frame, Point(460,210), Point(560,320), Scalar(0,0,255), 2 );
+//rectangle (frame, Point(730,190), Point(820,290), Scalar(0,0,255), 2 );
+
+//dart15.jpg - done
+//rectangle (frame, Point(70,120), Point(130,210), Scalar(0,0,255), 2 ); // left person
+//rectangle (frame, Point(370,110), Point(430,200), Scalar(0,0,255), 2 ); //middle person
+//rectangle (frame, Point(540,130), Point(600,220), Scalar(0,0,255), 2 ); //right person
