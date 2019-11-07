@@ -46,11 +46,11 @@ int main( int argc, const char** argv )
 }
 
 void importGroundTruth() {
-	string line;
-  ifstream faces("gt/faces1.txt");
+	int x, y, w, h;
+  ifstream faces("labels/face-test.txt");
   if (faces.is_open()) {
-    while ( getline(faces, line) ) {
-			cout << line << '\n';
+    while (faces >> x >> y >> w >> h) {
+			cout << x << " " << y << " " << w << " " << h << '\n';
     }
     faces.close();
   }
